@@ -6,6 +6,10 @@ In terminal (initial terminal, outside the project)
 - pip3 install awscli
 - aws configure 
   (region = ap-northeast-1, output = json)
+In project terminal
+- npm install aws-sdk
+- npm install uuid
+- npm install google-play-scraper
 
 Run:
 - node filename.js
