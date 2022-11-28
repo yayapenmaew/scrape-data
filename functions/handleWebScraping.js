@@ -1,7 +1,7 @@
 module.exports.handleTxt = (url) => {
   fetch(url).then(function (response) {
     response.text().then(function (text) {
-      console.log(text);
+      return text;
     });
   });
 };
