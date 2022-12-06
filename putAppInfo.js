@@ -7,7 +7,7 @@ AWS.config.update({
   retryDelayOptions: { base: 500 },
 });
 var ddb = new AWS.DynamoDB();
-var cat = gplay.category.BUSINESS;
+var cat = gplay.category.PHOTOGRAPHY;
 
 gplay
   .list({
