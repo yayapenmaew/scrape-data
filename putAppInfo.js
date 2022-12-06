@@ -1,9 +1,13 @@
 var gplay = require("google-play-scraper");
 var tableName = "application-info";
 var AWS = require("aws-sdk");
-AWS.config.update({ region: "ap-northeast-1" });
+AWS.config.update({
+  region: "ap-northeast-1",
+  maxRetries: 15,
+  retryDelayOptions: { base: 500 },
+});
 var ddb = new AWS.DynamoDB();
-var cat = gplay.category.ENTERTAINMENT;
+var cat = gplay.category.BOOKS_AND_REFERENCE;
 
 gplay
   .list({
