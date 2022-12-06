@@ -3,13 +3,13 @@ var tableName = "application-info";
 var AWS = require("aws-sdk");
 AWS.config.update({ region: "ap-northeast-1" });
 var ddb = new AWS.DynamoDB();
-var cat = gplay.category.GAME_ACTION;
+var cat = gplay.category.ENTERTAINMENT;
 
 gplay
   .list({
     category: cat,
     collection: gplay.collection.TOP_FREE,
-    num: 200,
+    num: 300,
   })
   .then((lists) =>
     lists.forEach((list) => {
@@ -23,11 +23,13 @@ gplay
             policyUrl: { S: datasafety.privacyPolicyUrl },
           },
         };
-        ddb.putItem(params, function (err, data) {
-          if (err) {
-            console.log("Error", err);
-          }
-        });
+        if (datasafety.privacyPolicyUrl) {
+          ddb.putItem(params, function (err, data) {
+            if (err) {
+              console.log("Error", err);
+            }
+          });
+        }
       });
     })
   );

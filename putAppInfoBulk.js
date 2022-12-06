@@ -26,15 +26,17 @@ function putAppsInfoByCat(category) {
             Item: {
               appId: { S: list.appId },
               appName: { S: list.title },
-              appCategory: { S: cat },
+              appCategory: { S: category },
               policyUrl: { S: datasafety.privacyPolicyUrl },
             },
           };
-          ddb.putItem(params, function (err, data) {
-            if (err) {
-              console.log("Error", err);
-            }
-          });
+          datasafety.privacyPolicyUrl &&
+            ddb.putItem(params, function (err, data) {
+              if (err) {
+                var error = err + "";
+                console.log("Error", error.substring(0, 20));
+              }
+            });
         });
       })
     );
