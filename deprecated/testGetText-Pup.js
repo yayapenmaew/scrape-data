@@ -12,13 +12,14 @@ const params = {
   // Set the projection expression, which are the attributes that you want.
   ProjectionExpression: "appId, policyUrl",
   TableName: "application-info",
-  Limit: 100,
+  Limit: 1,
 };
 
 (async () => {
   ddb.scan(params, function (err, data) {
     data.Items.forEach(async function (element, index, array) {
       let url = element.policyUrl.S;
+      url = "https://www.spotangels.com/privacy";
       var uploadParams = { Bucket: bucketName, Key: "", Body: "" };
       uploadParams.Key = element.appId.S + ".txt";
       await scrapeText(url, uploadParams);
