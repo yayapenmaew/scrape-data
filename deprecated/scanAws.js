@@ -14,7 +14,7 @@ const params = {
   // Set the projection expression, which are the attributes that you want.
   ProjectionExpression: "appId, policyUrl",
   TableName: "application-info",
-  Limit: 10,
+  Limit: 1300,
 };
 
 ddb.scan(params, function (err, data) {
@@ -29,4 +29,5 @@ ddb.scan(params, function (err, data) {
       );
     });
   }
+  console.log(data.LastEvaluatedKey);
 });

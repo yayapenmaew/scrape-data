@@ -1,6 +1,7 @@
 const puppeteer = require("puppeteer");
 var AWS = require("aws-sdk");
-const bucketName = "yayapunseniorproject";
+
+const bucketName = "rawprivacytext";
 AWS.config.update({
   region: "ap-northeast-1",
   maxRetries: 15,
@@ -15,8 +16,10 @@ const params = {
   // Set the projection expression, which are the attributes that you want.
   ProjectionExpression: "appId, policyUrl",
   TableName: "application-info",
-  Limit: 1500,
-  ExclusiveStartKey: { appId: { S: "com.conexsys.myleadsmobile" } },
+  Limit: 1000,
+  ExclusiveStartKey: {
+    appId: { S: "com.swifthawk.picku.free" },
+  },
 };
 ddb.scan(params, async function (err, data) {
   const arr = data.Items;
@@ -25,22 +28,24 @@ ddb.scan(params, async function (err, data) {
     let curr = arr[i];
     let url = curr.policyUrl.S;
     let appId = curr.appId.S;
-    //url = "https://www.gamovation.com/legal/privacy-policy.pdf";
+    console.log(i + " " + appId);
     var uploadParams = { Bucket: bucketName, Key: "", Body: "" };
     uploadParams.Key = curr.appId.S + ".txt";
-    await scrapeText(appId, url, uploadParams);
-    putToS3(uploadParams);
-    if (uploadParams.Body && uploadParams.Body != "") {
-      countOk++;
-      putToS3(uploadParams);
+    if (url.endsWith(".pdf")) putFailToDb(appId, url, "pdf");
+    else {
+      await scrapeText(appId, url, uploadParams);
+      if (uploadParams.Body && uploadParams.Body != "") {
+        countOk++;
+        putToS3(uploadParams);
+      } else {
+        if (!fail_run.includes(appId)) putFailToDb(appId, url, "blank");
+      }
     }
     //console.log(uploadParams.Body);
   }
   console.log("Ran: ", countRun);
   console.log("Ok: ", countOk);
-  //console.log(fail_run);
   console.log(data.LastEvaluatedKey);
-  putFailToDb(fail_run);
 });
 
 async function scrapeText(appId, url, uploadParams) {
@@ -53,11 +58,14 @@ async function scrapeText(appId, url, uploadParams) {
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
   );
   try {
-    await page.goto(url, { waitUntil: "networkidle2", timeout: 0 });
+    await page.goto(url, { waitUntil: "networkidle2" });
     extractedText = await page.$eval("*", (el) => el.innerText);
   } catch (e) {
-    fail_run.push({ appId: appId, policyUrl: url });
-    console.log(e);
+    fail_run.push(appId);
+    var err = e + "";
+    var err_msg = err.trim().split("\n")[0];
+    console.log(err_msg);
+    putFailToDb(appId, url, err_msg);
   }
   uploadParams.Body = extractedText;
   //console.log(extractedText);
@@ -73,7 +81,23 @@ function putToS3(params) {
   }
 }
 
-function putFailToDb(fail_urls) {
+function putFailToDb(appId, url, err) {
+  var params = {
+    TableName: "fail-urls",
+    Item: {
+      appId: { S: appId },
+      policyUrl: { S: url },
+      err: { S: err },
+    },
+  };
+  ddb.putItem(params, function (err, data) {
+    if (err) {
+      console.log("Error", err);
+    }
+  });
+}
+
+function putFailToDb2(fail_urls) {
   let params = {
     RequestItems: {
       "fail-urls": [],

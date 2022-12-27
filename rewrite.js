@@ -1,4 +1,6 @@
 const puppeteer = require("puppeteer");
+const jsdom = require("jsdom");
+
 var AWS = require("aws-sdk");
 const bucketName = "yayatestpupnew";
 AWS.config.update({
@@ -22,10 +24,12 @@ const params = {
     await Promise.all(
       data.Items.map(async function (element, index, array) {
         let url = element.policyUrl.S;
-        url = "https://www.gamovation.com/legal/privacy-policy.pdf";
+        url = "https://www.gazeus.com/privacy-policy/?game=dominoesbattle";
         var uploadParams = { Bucket: bucketName, Key: "", Body: "" };
         uploadParams.Key = element.appId.S + ".txt";
-        await scrapeText(url, uploadParams);
+        if (url.endsWith(".pdf")) scrapeTextFromPdf(url, uploadParams);
+        else await scrapeText(url, uploadParams);
+        console.log(uploadParams.Body);
       })
     );
   });
@@ -34,6 +38,7 @@ const params = {
 async function scrapeText(url, uploadParams) {
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
+
   //await page.setDefaultNavigationTimeout(100000);
   let extractedText = "";
   //console.log(url);
@@ -53,12 +58,26 @@ async function scrapeText(url, uploadParams) {
     extractedText = await page.$eval("*", (el) => el.innerText);
   } catch (e) {
     fail_url.push(url);
-    console.log(e);
+    var err = e + "";
+    console.log(err.trim().split("\n")[0]);
   }
   uploadParams.Body = extractedText;
   console.log(extractedText);
   await browser.close();
   return extractedText;
+}
+
+function scrapeTextFromPdf(url, uploadParams) {
+  url =
+    "https://toolsyep.com/en/webpage-to-plain-text/?u=" +
+    encodeURIComponent(url);
+  jsdom.JSDOM.fromURL(url).then((dom) => {
+    var text = dom.window.document.querySelector("body").textContent;
+    //text = removeHtml(text);
+    console.log(text);
+    uploadParams.Body = text;
+    //putToS3(uploadParams);
+  });
 }
 
 function putToS3(params) {
