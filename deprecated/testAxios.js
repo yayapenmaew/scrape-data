@@ -2,7 +2,7 @@
 const axios = require("axios");
 // scraper
 const jsdom = require("jsdom");
-const functions = require("./functions/handleWebScraping");
+const functions = require("../functions/handleWebScraping");
 let { removeHtml } = functions;
 
 var AWS = require("aws-sdk");

@@ -1,4 +1,4 @@
-const functions = require("./lib/app-categories");
+const functions = require("../lib/app-categories");
 var gplay = require("google-play-scraper");
 var AWS = require("aws-sdk");
 AWS.config.update({ region: "ap-northeast-1" });
