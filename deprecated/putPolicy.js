@@ -1,6 +1,6 @@
 // scraper
 const jsdom = require("jsdom");
-const functions = require("./functions/handleWebScraping");
+const functions = require("../functions/handleWebScraping");
 let { handleTxt, removeHtml } = functions;
 //aws
 var AWS = require("aws-sdk");
